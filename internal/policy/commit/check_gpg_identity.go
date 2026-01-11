@@ -105,7 +105,9 @@ func getKeyring(ctx context.Context, members []string) ([]string, error) {
 			key, err := getKey(ctx, member)
 
 			mu.Lock()
+
 			result = append(result, key)
+
 			mu.Unlock()
 
 			return err

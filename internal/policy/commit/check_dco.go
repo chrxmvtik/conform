@@ -45,7 +45,7 @@ func (d DCOCheck) Errors() []error {
 func (c Commit) ValidateDCO() policy.Check { //nolint:ireturn
 	check := &DCOCheck{}
 
-	for _, line := range strings.Split(c.msg, "\n") {
+	for line := range strings.SplitSeq(c.msg, "\n") {
 		if DCORegex.MatchString(strings.TrimSpace(line)) {
 			return check
 		}

@@ -1,6 +1,6 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED, PLEASE DO NOT EDIT.
 #
-# Generated on 2024-02-15T10:41:04Z by kres latest.
+# Generated on 2026-01-12T10:23:28Z by kres 0e8da31.
 
 *
 !cmd
@@ -11,3 +11,4 @@
 !CHANGELOG.md
 !README.md
 !.markdownlint.json
+!hack/govulncheck.sh

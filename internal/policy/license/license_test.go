@@ -3,7 +3,6 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 //go:build !some_test_tag
-// +build !some_test_tag
 
 package license_test
 

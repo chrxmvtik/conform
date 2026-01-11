@@ -6,6 +6,7 @@ package commit
 
 import (
 	"regexp"
+	"slices"
 
 	"github.com/pkg/errors"
 
@@ -57,11 +58,5 @@ func (c Commit) ValidateJiraCheck() policy.Check { //nolint:ireturn
 }
 
 func find(slice []string, value string) bool {
-	for _, elem := range slice {
-		if elem == value {
-			return true
-		}
-	}
-
-	return false
+	return slices.Contains(slice, value)
 }

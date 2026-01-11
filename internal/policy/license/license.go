@@ -20,6 +20,8 @@ import (
 )
 
 // Licenses implement the policy.Policy interface and enforces source code license headers.
+//
+//nolint:recvcheck
 type Licenses []License
 
 // License represents a single license policy.
@@ -123,13 +125,11 @@ func validateLicenseHeader(license License) []error {
 
 		if patternmatcher.Relative(path, info.IsDir()) != nil {
 			if info.IsDir() {
-				if info.IsDir() {
-					// skip whole directory tree
-					return filepath.SkipDir
-				}
-				// skip single file
-				return nil
+				// skip whole directory tree
+				return filepath.SkipDir
 			}
+			// skip single file
+			return nil
 		}
 
 		if info.Mode().IsRegular() {

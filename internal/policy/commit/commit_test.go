@@ -20,7 +20,7 @@ func TestConventionalCommitPolicy(t *testing.T) {
 	//nolint:govet
 	type testDesc struct {
 		Name         string
-		CreateCommit func() error
+		CreateCommit func(t *testing.T) error
 		ExpectValid  bool
 	}
 
@@ -65,17 +65,14 @@ func TestConventionalCommitPolicy(t *testing.T) {
 			t.Run(test.Name, func(tt *testing.T) {
 				dir := t.TempDir()
 
-				err := os.Chdir(dir)
+				t.Chdir(dir)
+
+				err := initRepo(t)
 				if err != nil {
 					tt.Error(err)
 				}
 
-				err = initRepo()
-				if err != nil {
-					tt.Error(err)
-				}
-
-				err = test.CreateCommit()
+				err = test.CreateCommit(tt)
 				if err != nil {
 					tt.Error(err)
 				}
@@ -146,17 +143,14 @@ func TestValidateDCO(t *testing.T) {
 func TestValidConventionalCommitPolicy(t *testing.T) {
 	dir := t.TempDir()
 
-	err := os.Chdir(dir)
+	t.Chdir(dir)
+
+	err := initRepo(t)
 	if err != nil {
 		t.Error(err)
 	}
 
-	err = initRepo()
-	if err != nil {
-		t.Error(err)
-	}
-
-	err = createValidScopedCommit()
+	err = createValidScopedCommit(t)
 	if err != nil {
 		t.Error(err)
 	}
@@ -174,17 +168,14 @@ func TestValidConventionalCommitPolicy(t *testing.T) {
 func TestInvalidConventionalCommitPolicy(t *testing.T) {
 	dir := t.TempDir()
 
-	err := os.Chdir(dir)
+	t.Chdir(dir)
+
+	err := initRepo(t)
 	if err != nil {
 		t.Error(err)
 	}
 
-	err = initRepo()
-	if err != nil {
-		t.Error(err)
-	}
-
-	err = createInvalidCommit()
+	err = createInvalidCommit(t)
 	if err != nil {
 		t.Error(err)
 	}
@@ -202,17 +193,14 @@ func TestInvalidConventionalCommitPolicy(t *testing.T) {
 func TestEmptyConventionalCommitPolicy(t *testing.T) {
 	dir := t.TempDir()
 
-	err := os.Chdir(dir)
+	t.Chdir(dir)
+
+	err := initRepo(t)
 	if err != nil {
 		t.Error(err)
 	}
 
-	err = initRepo()
-	if err != nil {
-		t.Error(err)
-	}
-
-	err = createInvalidEmptyCommit()
+	err = createInvalidEmptyCommit(t)
 	if err != nil {
 		t.Error(err)
 	}
@@ -230,17 +218,14 @@ func TestEmptyConventionalCommitPolicy(t *testing.T) {
 func TestValidConventionalCommitPolicyRegex(t *testing.T) {
 	dir := t.TempDir()
 
-	err := os.Chdir(dir)
+	t.Chdir(dir)
+
+	err := initRepo(t)
 	if err != nil {
 		t.Error(err)
 	}
 
-	err = initRepo()
-	if err != nil {
-		t.Error(err)
-	}
-
-	err = createValidCommitRegex()
+	err = createValidCommitRegex(t)
 	if err != nil {
 		t.Error(err)
 	}
@@ -258,17 +243,14 @@ func TestValidConventionalCommitPolicyRegex(t *testing.T) {
 func TestInvalidConventionalCommitPolicyRegex(t *testing.T) {
 	dir := t.TempDir()
 
-	err := os.Chdir(dir)
+	t.Chdir(dir)
+
+	err := initRepo(t)
 	if err != nil {
 		t.Error(err)
 	}
 
-	err = initRepo()
-	if err != nil {
-		t.Error(err)
-	}
-
-	err = createInvalidCommitRegex()
+	err = createInvalidCommitRegex(t)
 	if err != nil {
 		t.Error(err)
 	}
@@ -286,17 +268,14 @@ func TestInvalidConventionalCommitPolicyRegex(t *testing.T) {
 func TestValidRevisionRange(t *testing.T) {
 	dir := t.TempDir()
 
-	err := os.Chdir(dir)
+	t.Chdir(dir)
+
+	err := initRepo(t)
 	if err != nil {
 		t.Error(err)
 	}
 
-	err = initRepo()
-	if err != nil {
-		t.Error(err)
-	}
-
-	revs, err := createValidCommitRange()
+	revs, err := createValidCommitRange(t)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -340,26 +319,26 @@ func TestValidRevisionRange(t *testing.T) {
 	}
 }
 
-func createValidCommitRange() ([]string, error) {
+func createValidCommitRange(t *testing.T) ([]string, error) {
 	revs := make([]string, 0, 4)
 
 	for i := range 4 {
-		err := os.WriteFile("test", []byte(fmt.Sprint(i)), 0o644)
+		err := os.WriteFile("test", fmt.Append(nil, i), 0o644)
 		if err != nil {
 			return nil, fmt.Errorf("writing test file failed: %w", err)
 		}
 
-		_, err = exec.Command("git", "add", "test").Output()
+		_, err = exec.CommandContext(t.Context(), "git", "add", "test").Output()
 		if err != nil {
 			return nil, fmt.Errorf("git add failed: %w", err)
 		}
 
-		_, err = exec.Command("git", "-c", "user.name='test'", "-c", "user.email='test@siderolabs.io'", "commit", "-m", fmt.Sprintf("type(scope): description %d", i)).Output()
+		_, err = exec.CommandContext(t.Context(), "git", "-c", "user.name='test'", "-c", "user.email='test@siderolabs.io'", "commit", "-m", fmt.Sprintf("type(scope): description %d", i)).Output()
 		if err != nil {
 			return nil, fmt.Errorf("git commit failed: %w", err)
 		}
 
-		id, err := exec.Command("git", "rev-parse", "HEAD").Output()
+		id, err := exec.CommandContext(t.Context(), "git", "rev-parse", "HEAD").Output()
 		if err != nil {
 			return nil, fmt.Errorf("rev-parse failed: %w", err)
 		}
@@ -394,72 +373,72 @@ func runCompliance() (*policy.Report, error) {
 	return c.Compliance(&policy.Options{})
 }
 
-func initRepo() error {
-	_, err := exec.Command("git", "init").Output()
+func initRepo(t *testing.T) error {
+	_, err := exec.CommandContext(t.Context(), "git", "init").Output()
 	if err != nil {
 		return err
 	}
 
-	_, err = exec.Command("touch", "test").Output()
+	_, err = exec.CommandContext(t.Context(), "touch", "test").Output()
 	if err != nil {
 		return err
 	}
 
-	_, err = exec.Command("git", "add", "test").Output()
+	_, err = exec.CommandContext(t.Context(), "git", "add", "test").Output()
 
 	return err
 }
 
-func createValidScopedCommit() error {
-	_, err := exec.Command("git", "-c", "user.name='test'", "-c", "user.email='test@siderolabs.io'", "commit", "-m", "type(scope): description").Output()
+func createValidScopedCommit(t *testing.T) error {
+	_, err := exec.CommandContext(t.Context(), "git", "-c", "user.name='test'", "-c", "user.email='test@siderolabs.io'", "commit", "-m", "type(scope): description").Output()
 
 	return err
 }
 
-func createValidBreakingCommit() error {
-	_, err := exec.Command("git", "-c", "user.name='test'", "-c", "user.email='test@siderolabs.io'", "commit", "-m", "feat!: description").Output()
+func createValidBreakingCommit(t *testing.T) error {
+	_, err := exec.CommandContext(t.Context(), "git", "-c", "user.name='test'", "-c", "user.email='test@siderolabs.io'", "commit", "-m", "feat!: description").Output()
 
 	return err
 }
 
-func createInvalidBreakingSymbolCommit() error {
-	_, err := exec.Command("git", "-c", "user.name='test'", "-c", "user.email='test@siderolabs.io'", "commit", "-m", "feat$: description").Output()
+func createInvalidBreakingSymbolCommit(t *testing.T) error {
+	_, err := exec.CommandContext(t.Context(), "git", "-c", "user.name='test'", "-c", "user.email='test@siderolabs.io'", "commit", "-m", "feat$: description").Output()
 
 	return err
 }
 
-func createValidScopedBreakingCommit() error {
-	_, err := exec.Command("git", "-c", "user.name='test'", "-c", "user.email='test@siderolabs.io'", "commit", "-m", "feat(scope)!: description").Output()
+func createValidScopedBreakingCommit(t *testing.T) error {
+	_, err := exec.CommandContext(t.Context(), "git", "-c", "user.name='test'", "-c", "user.email='test@siderolabs.io'", "commit", "-m", "feat(scope)!: description").Output()
 
 	return err
 }
 
-func createInvalidScopedBreakingCommit() error {
-	_, err := exec.Command("git", "-c", "user.name='test'", "-c", "user.email='test@siderolabs.io'", "commit", "-m", "feat!(scope): description").Output()
+func createInvalidScopedBreakingCommit(t *testing.T) error {
+	_, err := exec.CommandContext(t.Context(), "git", "-c", "user.name='test'", "-c", "user.email='test@siderolabs.io'", "commit", "-m", "feat!(scope): description").Output()
 
 	return err
 }
 
-func createInvalidCommit() error {
-	_, err := exec.Command("git", "-c", "user.name='test'", "-c", "user.email='test@siderolabs.io'", "commit", "-m", "invalid commit").Output()
+func createInvalidCommit(t *testing.T) error {
+	_, err := exec.CommandContext(t.Context(), "git", "-c", "user.name='test'", "-c", "user.email='test@siderolabs.io'", "commit", "-m", "invalid commit").Output()
 
 	return err
 }
 
-func createInvalidEmptyCommit() error {
-	_, err := exec.Command("git", "-c", "user.name='test'", "-c", "user.email='test@siderolabs.io'", "commit", "--allow-empty-message", "-m", "").Output()
+func createInvalidEmptyCommit(t *testing.T) error {
+	_, err := exec.CommandContext(t.Context(), "git", "-c", "user.name='test'", "-c", "user.email='test@siderolabs.io'", "commit", "--allow-empty-message", "-m", "").Output()
 
 	return err
 }
 
-func createValidCommitRegex() error {
-	_, err := exec.Command("git", "-c", "user.name='test'", "-c", "user.email='test@siderolabs.io'", "commit", "-m", "type(valid-1): description").Output()
+func createValidCommitRegex(t *testing.T) error {
+	_, err := exec.CommandContext(t.Context(), "git", "-c", "user.name='test'", "-c", "user.email='test@siderolabs.io'", "commit", "-m", "type(valid-1): description").Output()
 
 	return err
 }
 
-func createInvalidCommitRegex() error {
-	_, err := exec.Command("git", "-c", "user.name='test'", "-c", "user.email='test@siderolabs.io'", "commit", "-m", "type(invalid-1): description").Output()
+func createInvalidCommitRegex(t *testing.T) error {
+	_, err := exec.CommandContext(t.Context(), "git", "-c", "user.name='test'", "-c", "user.email='test@siderolabs.io'", "commit", "-m", "type(invalid-1): description").Output()
 
 	return err
 }

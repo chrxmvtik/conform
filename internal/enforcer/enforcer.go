@@ -34,8 +34,8 @@ type Conform struct {
 //
 //nolint:govet
 type PolicyDeclaration struct {
-	Type string      `yaml:"type"`
-	Spec interface{} `yaml:"spec"`
+	Type string `yaml:"type"`
+	Spec any    `yaml:"spec"`
 }
 
 // New loads the conform.yaml file and unmarshals it into a Conform struct.
@@ -72,6 +72,7 @@ func (c *Conform) Enforce(setters ...policy.Option) error {
 	opts := policy.NewDefaultOptions(setters...)
 
 	const padding = 8
+
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, padding, ' ', 0)
 	fmt.Fprintln(w, "POLICY\tCHECK\tSTATUS\tMESSAGE\t") //nolint:errcheck
 
@@ -144,10 +145,10 @@ func (c *Conform) convertDeclarations() ([]policyWithType, error) {
 
 		case "commit":
 			// backwards compatibility, convert `gpg: bool` into `gpg: required: bool`
-			if spec, ok := p.Spec.(map[interface{}]interface{}); ok {
+			if spec, ok := p.Spec.(map[any]any); ok {
 				if gpg, ok := spec["gpg"]; ok {
 					if val, ok := gpg.(bool); ok {
-						spec["gpg"] = map[string]interface{}{
+						spec["gpg"] = map[string]any{
 							"required": val,
 						}
 					}
