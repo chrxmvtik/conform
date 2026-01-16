@@ -28,8 +28,12 @@ var enforceCmd = &cobra.Command{
 		// after this point
 		cmd.SilenceUsage = true
 
+		// Get the reporter value
 		reporter := cmd.Flags().Lookup("reporter").Value.String()
-		e, err := enforcer.New(reporter)
+
+		// Get the config path value
+		configPath := cmd.Flags().Lookup("config").Value.String()
+		e, err := enforcer.New(configPath, reporter)
 		if err != nil {
 			return fmt.Errorf("failed to create enforcer: %w", err)
 		}
@@ -68,6 +72,7 @@ func init() {
 	enforceCmd.Flags().String("reporter", "none", "the reporter method to use")
 	enforceCmd.Flags().String("revision-range", "", "<commit1>..<commit2>")
 	enforceCmd.Flags().String("base-branch", "", "base branch to compare with")
+	enforceCmd.Flags().String("config", ".conform.yaml", "config file path")
 	rootCmd.AddCommand(enforceCmd)
 }
 

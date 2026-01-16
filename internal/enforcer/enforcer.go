@@ -39,7 +39,7 @@ type PolicyDeclaration struct {
 }
 
 // New loads the conform.yaml file and unmarshals it into a Conform struct.
-func New(r string) (*Conform, error) {
+func New(cp string, r string) (*Conform, error) {
 	c := &Conform{}
 
 	switch r {
@@ -54,7 +54,7 @@ func New(r string) (*Conform, error) {
 		c.reporter = &reporter.Noop{}
 	}
 
-	configBytes, err := os.ReadFile(".conform.yaml")
+	configBytes, err := os.ReadFile(cp)
 	if err != nil {
 		return nil, err
 	}
